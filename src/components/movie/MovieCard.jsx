@@ -1,7 +1,9 @@
 /* eslint-disable react/prop-types */
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const MovieCard = ({ movie }) => {
+  const navigate = useNavigate();
   return (
     <div className="movie-card flex flex-col rounded-lg bg-slate-800 text-white p-3 h-full select-none">
       <img
@@ -15,7 +17,10 @@ const MovieCard = ({ movie }) => {
           <span>{new Date(movie.release_date).getFullYear()}</span>
           <span>{movie.vote_average}</span>
         </div>
-        <button className="py-3 px-6 rounded-lg bg-primary capitalize w-full mt-auto">
+        <button
+          onClick={() => navigate(`/movie/${movie.id}`)}
+          className="py-3 px-6 rounded-lg bg-primary capitalize w-full mt-auto"
+        >
           watch now
         </button>
       </div>
