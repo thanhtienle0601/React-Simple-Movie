@@ -2,16 +2,18 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import useSWR from "swr";
-import { fetcher } from "../../config";
+import { fetcher, tmdbAPI } from "../../config";
+import Button from "@components/button/Button";
+import { useNavigate } from "react-router-dom";
 
 const Banner = () => {
   const { data, error, isLoading } = useSWR(
-    `https://api.themoviedb.org/3/movie/now_playing`,
+    tmdbAPI.getListMovies("now_playing"),
     fetcher
   );
 
   const movies = data?.results || [];
-  console.log(movies);
+
   return (
     <section className="banner h-[650px] page-container mb-20 overflow-hidden">
       <Swiper grabCursor={"true"} slidesPerView={"auto"} className="h-full">
@@ -27,6 +29,7 @@ const Banner = () => {
 };
 
 function BannerItem({ movie }) {
+  const navigate = useNavigate();
   const genres = new Array(movie.genre_ids);
   const { data, error, isLoading } = useSWR(
     `https://api.themoviedb.org/3/genre/movie/list`,
@@ -59,9 +62,12 @@ function BannerItem({ movie }) {
               </span>
             ))}
         </div>
-        <button className="py-3 px-6 bg-primary rounded-lg text-white font-medium">
+        <Button onClick={() => navigate(`/movie/${movie.id}`)} color="primary">
           Watch Now
-        </button>
+        </Button>
+        {/* <button className="py-3 px-6 bg-secondary rounded-lg text-white font-medium">
+          Watch Now
+        </button> */}
       </div>
     </div>
   );

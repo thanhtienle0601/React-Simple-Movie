@@ -3,19 +3,31 @@ import "swiper/scss";
 
 import { Route, Routes } from "react-router-dom";
 import Main from "./components/layout/Main";
-import HomePage from "./pages/HomePage";
-import MoviePage from "./pages/MoviePage";
-import MovieDetailsPage from "./pages/MovieDetailsPage";
+// import HomePage from "./pages/HomePage";
+// import MoviePage from "./pages/MoviePage";
+// import MovieDetailsPage from "./pages/MovieDetailsPage";
+import { Fragment, Suspense, lazy } from "react";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const MoviePage = lazy(() => import("./pages/MoviePage"));
+const MovieDetailsPage = lazy(() => import("./pages/MovieDetailsPage"));
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Main />}>
-        <Route path="/" element={<HomePage />}></Route>
-        <Route path="/movies" element={<MoviePage />}></Route>
-        <Route path="/movie/:movieId" element={<MovieDetailsPage />}></Route>
-      </Route>
-    </Routes>
+    <Fragment>
+      <Suspense fallback={<></>}>
+        <Routes>
+          <Route element={<Main />}>
+            <Route path="/" element={<HomePage />}></Route>
+            <Route path="/movies" element={<MoviePage />}></Route>
+            <Route
+              path="/movie/:movieId"
+              element={<MovieDetailsPage />}
+            ></Route>
+          </Route>
+        </Routes>
+      </Suspense>
+    </Fragment>
   );
 }
 

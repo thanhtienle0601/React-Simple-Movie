@@ -1,14 +1,15 @@
+/* eslint-disable react/prop-types */
 import React, { Fragment } from "react";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
-import { fetcher } from "../config";
+import { fetcher, tmdbAPI } from "../config";
 import { Swiper, SwiperSlide } from "swiper/react";
-import MovieCard from "../components/movie/MovieCard";
+import MovieCard from "@components/movie/MovieCard";
 
 const MovieDetailsPage = () => {
   const { movieId } = useParams();
   const { data, error, isLoading } = useSWR(
-    `https://api.themoviedb.org/3/movie/${movieId}`,
+    tmdbAPI.getDetailsMovie(movieId),
     fetcher
   );
   if (!data) return null;
@@ -20,12 +21,12 @@ const MovieDetailsPage = () => {
         <div
           className="w-full h-full bg-cover bg-no-repeat"
           style={{
-            backgroundImage: `url(https://image.tmdb.org/t/p/original${data.backdrop_path})`,
+            backgroundImage: `url(${tmdbAPI.getImageURL(data.backdrop_path)})`,
           }}
         ></div>
         <div className="max-w-[400px] h-[500px] mx-auto -mt-[450px] relative z-10 mb-10">
           <img
-            src={`https://image.tmdb.org/t/p/original${data.poster_path}`}
+            src={`${tmdbAPI.getImageURL(data.poster_path)}`}
             alt=""
             className="w-full h-full rounded-lg object-cover"
           />
@@ -48,18 +49,85 @@ const MovieDetailsPage = () => {
         <p className="max-w-[800px] text-center mx-auto leading-relaxed pb-10">
           {data.overview}
         </p>
-        <MovieCredits></MovieCredits>
-        <MovieVideos></MovieVideos>
-        <MovieSimilar></MovieSimilar>
+        <MovieMeta type={"/credits"}></MovieMeta>
+        <MovieMeta type={"/videos"}></MovieMeta>
+        <MovieMeta type={"/similar"}></MovieMeta>
       </div>
     </Fragment>
   );
 
-  function MovieCredits() {
-    // https://api.themoviedb.org/3/movie/{movie_id}/credits
+  function MovieMeta({ type }) {
     const { movieId } = useParams();
     const { data, error, isLoading } = useSWR(
-      `https://api.themoviedb.org/3/movie/${movieId}/credits`,
+      tmdbAPI.getDetailsMovie(movieId, type),
+      fetcher
+    );
+    if (!data) return null;
+    if (type === "/credits") {
+      return (
+        <div>
+          <h3 className="text-2xl font-semibold text-center mb-10">Cast</h3>
+          <div className="grid grid-cols-4 gap-5 page-container pb-10">
+            {data.cast.length > 0 &&
+              data.cast.slice(0, 4).map((item) => (
+                <div key={item.id} className="cast-item">
+                  <img
+                    src={`${tmdbAPI.getImageURL(item.profile_path)}`}
+                    alt=""
+                    className="w-full h-[350px] object-cover rounded-lg mb-3"
+                  />
+                  <h3 className="text-xl">{item.name}</h3>
+                </div>
+              ))}
+          </div>
+        </div>
+      );
+    }
+    if (type === "/videos") {
+      return (
+        <div className="pb-10">
+          <h3 className="text-2xl text-center font-bold pb-10">Videos</h3>
+          <div className="flex flex-col gap-y-20 page-container">
+            {data.results.length > 0 &&
+              data.results.slice(0, 4).map((video) => (
+                <div key={video.id}>
+                  <h4 className="pb-5">{video.name}</h4>
+                  <div className="aspect-video w-full">
+                    <iframe
+                      src={`${tmdbAPI.getVideoURL(video.key)}`}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="w-full h-full object-fill"
+                    ></iframe>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      );
+    }
+    if (type === "/similar") {
+      return (
+        <div className="movie-list page-container py-10">
+          <h2 className="text-3xl font-bold pb-5">Similar Movies</h2>
+          <Swiper spaceBetween={40} slidesPerView={"auto"} grabCursor={"true"}>
+            {data.results?.map((movie) => (
+              <SwiperSlide key={movie.id}>
+                <MovieCard movie={movie}></MovieCard>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      );
+    }
+  }
+
+  function MovieCredits() {
+    const { movieId } = useParams();
+    const { data, error, isLoading } = useSWR(
+      tmdbAPI.getDetailsMovie(movieId, "/credits"),
       fetcher
     );
     if (!data) return null;
@@ -72,7 +140,7 @@ const MovieDetailsPage = () => {
             data.cast.slice(0, 4).map((item) => (
               <div key={item.id} className="cast-item">
                 <img
-                  src={`https://image.tmdb.org/t/p/original${item.profile_path}`}
+                  src={`${tmdbAPI.getImageURL(item.profile_path)}`}
                   alt=""
                   className="w-full h-[350px] object-cover rounded-lg mb-3"
                 />
@@ -85,18 +153,9 @@ const MovieDetailsPage = () => {
   }
 
   function MovieVideos() {
-    <iframe
-      width="560"
-      height="315"
-      src="https://www.youtube.com/embed/FSSsU-fOluY?si=7CHADYND947NQmQA"
-      title="YouTube video player"
-      frameBorder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen
-    ></iframe>;
     const { movieId } = useParams();
     const { data, error, isLoading } = useSWR(
-      `https://api.themoviedb.org/3/movie/${movieId}/videos`,
+      tmdbAPI.getDetailsMovie(movieId, "/videos"),
       fetcher
     );
     if (!data) return null;
@@ -111,11 +170,11 @@ const MovieDetailsPage = () => {
                 <h4 className="pb-5">{video.name}</h4>
                 <div className="aspect-video w-full">
                   <iframe
-                    src={`https://www.youtube.com/embed/${video.key}?si=YJQHB-2ADXLv9tVV`}
+                    src={`${tmdbAPI.getVideoURL(video.key)}`}
                     title="YouTube video player"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen
+                    allowFullScreen
                     className="w-full h-full object-fill"
                   ></iframe>
                 </div>
@@ -129,7 +188,7 @@ const MovieDetailsPage = () => {
   function MovieSimilar() {
     const { movieId } = useParams();
     const { data, error, isLoading } = useSWR(
-      `https://api.themoviedb.org/3/movie/${movieId}/similar`,
+      tmdbAPI.getDetailsMovie(movieId, "/similar"),
       fetcher
     );
     if (!data) return null;
