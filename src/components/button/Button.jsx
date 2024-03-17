@@ -7,6 +7,7 @@ const Button = ({
   className = "",
   full,
   color = "primary",
+  ...props
 }) => {
   return (
     <button
@@ -14,6 +15,7 @@ const Button = ({
       className={`py-3 px-6 rounded-lg bg-${color} capitalize mt-auto ${className} ${
         full ? "w-full" : ""
       }`}
+      {...props}
     >
       {children}
     </button>
